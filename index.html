@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ДМБ 2027 - Альберт</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+<div id="bg-color"></div>
+<canvas id="bg"></canvas>
+
+<div class="author-signature">By Amir(Brother)</div>
+
+<div class="section">
+    <div class="header">
+        <h1>ДМБ 2027</h1>
+        <p class="subtitle">Альберт, ждем тебя всей семьей</p>
+        <p>Служба началась: 25 июня 2026</p>
+    </div>
+    <div class="timer-box">
+        <div class="time-units">
+            <div class="unit"><span id="days">000</span><span class="label">Дней</span></div>
+            <div class="unit"><span id="hours">00</span><span class="label">Часов</span></div>
+            <div class="unit"><span id="minutes">00</span><span class="label">Минут</span></div>
+            <div class="unit"><span id="seconds">00</span><span class="label">Секунд</span></div>
+        </div>
+    </div>
+    <div class="scroll-indicator">▼</div>
+</div>
+
+<div class="section">
+    <div class="content-box">
+        <div class="cmd-box">
+            <span class="cmd-text" id="quoteDisplay">root@system:~$ Ожидание команды...</span>
+        </div>
+        <button class="btn" id="quoteBtn">Запросить поддержку</button>
+    </div>
+    <div class="scroll-indicator">▼</div>
+</div>
+
+<div class="section">
+    <div class="gallery">
+        <div class="photo-slot">
+            <div class="photo-image-wrapper">
+                <img src="photo1.jpg" alt="Фото 1" onerror="this.style.display='none'; this.parentNode.innerHTML='<span>photo1.jpg</span>'">
+            </div>
+            <div class="photo-caption">Гордимся тобой, брат!</div>
+        </div>
+        <div class="photo-slot">
+            <div class="photo-image-wrapper">
+                <img src="photo2.jpg" alt="Фото 2" onerror="this.style.display='none'; this.parentNode.innerHTML='<span>photo2.jpg</span>'">
+            </div>
+            <div class="photo-caption">Ждем твоего возвращения</div>
+        </div>
+        <div class="photo-slot">
+            <div class="photo-image-wrapper">
+                <img src="photo3.jpg" alt="Фото 3" onerror="this.style.display='none'; this.parentNode.innerHTML='<span>photo3.jpg</span>'">
+            </div>
+            <div class="photo-caption">Семья всегда рядом</div>
+        </div>
+    </div>
+    <div class="scroll-indicator">▼</div>
+</div>
+
+<div class="section">
+    <div class="dandelion-field"></div>
+    <div class="chat-placeholder" style="border: none; background: transparent; box-shadow: none;">
+        <button class="btn" onclick="window.location.href='chat.html'" style="background: rgba(0, 255, 0, 0.1); border-color: #00ff00; color: #00ff00; padding: 25px 40px; font-size: 1.5rem; font-weight: bold; box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);">ВОЙТИ В КАНАЛ СВЯЗИ</button>
+    </div>
+</div>
+
+</body>
+</html>
