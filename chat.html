@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Братский - Канал связи</title>
+<title>Telegram - Канал связи</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
@@ -30,7 +30,7 @@ body {
     overflow: hidden;
     transition: background-color 0.3s, color 0.3s;
 }
-#auth-screen {
+#auth-screen, #name-screen, #password-screen {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -113,17 +113,18 @@ body {
     justify-content: space-between;
     background: var(--bg-secondary);
     transition: background-color 0.3s;
+    gap: 10px;
 }
-.sidebar-header h3 {
-    margin: 0;
-    font-size: 18px;
-}
-.menu-btn {
+.menu-btn, .action-btn {
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-size: 24px;
+    font-size: 20px;
     cursor: pointer;
+    transition: color 0.2s;
+}
+.menu-btn:hover, .action-btn:hover {
+    color: var(--text-main);
 }
 .chat-list {
     flex: 1;
@@ -134,9 +135,12 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    background: var(--accent-color);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s;
+}
+.chat-item:hover {
+    background: rgba(255,255,255,0.05);
 }
 .avatar {
     width: 48px;
@@ -149,15 +153,25 @@ body {
     font-weight: bold;
     font-size: 20px;
     border: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+.chat-info {
+    overflow: hidden;
 }
 .chat-info h4 {
     margin: 0 0 5px 0;
     font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .chat-info p {
     margin: 0;
-    font-size: 14px;
-    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .main-chat {
     flex: 1;
@@ -176,6 +190,20 @@ body {
     box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     z-index: 10;
     transition: background-color 0.3s;
+}
+.chat-header-left {
+    display: flex;
+    align-items: center;
+}
+.back-to-chats-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 15px;
+    padding: 0;
 }
 .chat-header-info h3 {
     margin: 0;
@@ -211,6 +239,20 @@ body {
 .admin-btn:hover {
     background: rgba(229, 57, 53, 0.1);
     color: #ff5252;
+}
+#noChatSelected {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+#chatContent {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
 }
 #messages-area {
     flex: 1;
@@ -436,7 +478,21 @@ body {
 }
 @media (max-width: 768px) {
     .sidebar {
+        width: 100%;
+        border-right: none;
+    }
+    .main-chat {
         display: none;
+        width: 100%;
+    }
+    .sidebar.hidden {
+        display: none !important;
+    }
+    .main-chat.active {
+        display: flex !important;
+    }
+    .back-to-chats-btn {
+        display: block;
     }
     .message-wrapper {
         max-width: 85%;
@@ -448,58 +504,80 @@ body {
 
 <div id="auth-screen">
     <div class="auth-box">
-        <h2>Альбертыч</h2>
-        <input type="text" id="secretInput" autocomplete="off" placeholder="Введите ключ доступа...">
+        <h2>Наилучший канал связи</h2>
+        <input type="text" id="secretInput" autocomplete="off" placeholder="Введите код доступа или логин...">
         <button class="btn" id="loginBtn">Войти</button>
-        <div class="error" id="errorMsg">Доступ запрещен. Неверный ключ.</div>
-        <a href="index.html" style="display: block; margin-top: 20px; color: var(--text-muted); text-decoration: none; font-size: 14px;">← Вернуться на базу</a>
+        <div class="error" id="errorMsg">Код не найден.</div>
+        <a href="index.html" style="display: block; margin-top: 20px; color: var(--text-muted); text-decoration: none; font-size: 14px;">← На главную</a>
+    </div>
+</div>
+
+<div id="password-screen" style="display:none;">
+    <div class="auth-box">
+        <h2>Проверка безопасности</h2>
+        <input type="password" id="loginPasswordInput" autocomplete="off" placeholder="Введите ваш пароль...">
+        <button class="btn" id="verifyPasswordBtn">Подтвердить</button>
+        <div class="error" id="passErrorMsg">Неверный пароль.</div>
+        <a href="javascript:location.reload()" style="display: block; margin-top: 20px; color: var(--text-muted); text-decoration: none; font-size: 14px;">← Назад</a>
+    </div>
+</div>
+
+<div id="name-screen" style="display:none;">
+    <div class="auth-box">
+        <h2>Регистрация</h2>
+        <input type="text" id="nameInput" autocomplete="off" placeholder="Введите ваше имя...">
+        <input type="password" id="newPasswordInput" autocomplete="off" placeholder="Придумайте пароль...">
+        <button class="btn" id="saveNameBtn">Завершить</button>
     </div>
 </div>
 
 <div id="app-layout">
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="menu-btn" id="openSettingsBtn">☰</button>
-            <input type="text" placeholder="Поиск" style="background: var(--bg-input); border: none; padding: 8px 15px; border-radius: 20px; color: #fff; width: 180px;">
+            <button class="menu-btn" id="openSettingsBtn" title="Настройки">☰</button>
+            <div style="font-weight:bold; font-size:16px;" id="sidebarName">Пользователь</div>
+            <button class="action-btn" id="addChatBtn" title="Найти по коду">➕</button>
+            <button class="action-btn admin-btn" id="adminInviteBtn" style="display:none;" title="Создать код">🔑</button>
         </div>
-        <div class="chat-list">
-            <div class="chat-item">
-                <div class="avatar">А</div>
-                <div class="chat-info">
-                    <h4 id="sidebarName">Альберт</h4>
-                    <p>Канал защищенной связи</p>
-                </div>
-            </div>
-        </div>
+        <div class="chat-list" id="chatList"></div>
     </div>
 
-    <div class="main-chat">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <h3 id="chatTitle">Семья</h3>
-                <p>в сети</p>
-            </div>
-            <div class="header-actions">
-                <button class="icon-btn admin-btn" id="clearChatBtn" title="Очистить историю">🗑</button>
-                <button class="icon-btn" onclick="window.location.href='index.html'" title="Выйти">🚪</button>
-            </div>
+    <div class="main-chat" id="mainChat">
+        <div id="noChatSelected">
+            Выберите чат для начала общения
         </div>
         
-        <div id="messages-area"></div>
-        
-        <div id="edit-bar">
-            <div class="edit-info">
-                <span class="edit-title">Редактирование сообщения</span>
-                <span class="edit-text" id="editPreview">...</span>
+        <div id="chatContent">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <button class="back-to-chats-btn" id="backToChatsBtn">←</button>
+                    <div class="chat-header-info">
+                        <h3 id="chatTitle">...</h3>
+                        <p>в сети</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn admin-btn" id="clearChatBtn" title="Очистить историю">🗑</button>
+                    <button class="icon-btn" onclick="window.location.reload()" title="Выйти">🚪</button>
+                </div>
             </div>
-            <button class="close-edit" id="cancelEditBtn">×</button>
-        </div>
+            
+            <div id="messages-area"></div>
+            
+            <div id="edit-bar">
+                <div class="edit-info">
+                    <span class="edit-title">Редактирование сообщения</span>
+                    <span class="edit-text" id="editPreview">...</span>
+                </div>
+                <button class="close-edit" id="cancelEditBtn">×</button>
+            </div>
 
-        <div class="input-area">
-            <div class="input-wrapper">
-                <input type="text" id="msgInput" placeholder="Написать сообщение..." autocomplete="off">
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input type="text" id="msgInput" placeholder="Написать сообщение..." autocomplete="off">
+                </div>
+                <button class="send-btn" id="sendBtn">➤</button>
             </div>
-            <button class="send-btn" id="sendBtn">➤</button>
         </div>
 
         <div class="context-menu" id="contextMenu">
@@ -524,6 +602,7 @@ body {
             <div class="color-swatch" style="background: #d4a373;" data-theme="orange"></div>
             <div class="color-swatch" style="background: #333333;" data-theme="dark"></div>
         </div>
+        <p style="margin-top: 10px; color: var(--text-muted); font-size: 12px;" id="myCodeDisplay"></p>
     </div>
 </div>
 
@@ -542,11 +621,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let currentUser = "";
+let currentUserCode = "";
+let currentUserName = "";
 let isAdmin = false;
+let currentChatId = null;
 let editingMessageId = null;
 let selectedMessageId = null;
 let selectedMessageElement = null;
+let tempInviteCode = "";
+let tempLoginCode = "";
+let expectedPassword = "";
+let expectedName = "";
 
 const themes = {
     blue: { main: '#0e1621', sec: '#17212b', inp: '#242f3d', acc: '#2b5278', mIn: '#182533', mOut: '#2b5278' },
@@ -558,10 +643,15 @@ const themes = {
 };
 
 const authScreen = document.getElementById('auth-screen');
+const nameScreen = document.getElementById('name-screen');
+const passwordScreen = document.getElementById('password-screen');
 const appLayout = document.getElementById('app-layout');
+const sidebar = document.getElementById('sidebar');
+const mainChat = document.getElementById('mainChat');
 const secretInput = document.getElementById('secretInput');
 const loginBtn = document.getElementById('loginBtn');
 const errorMsg = document.getElementById('errorMsg');
+const passErrorMsg = document.getElementById('passErrorMsg');
 const messagesArea = document.getElementById('messages-area');
 const msgInput = document.getElementById('msgInput');
 const sendBtn = document.getElementById('sendBtn');
@@ -576,6 +666,9 @@ const settingsModal = document.getElementById('settingsModal');
 const openSettingsBtn = document.getElementById('openSettingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const colorSwatches = document.querySelectorAll('.color-swatch');
+const backToChatsBtn = document.getElementById('backToChatsBtn');
+const verifyPasswordBtn = document.getElementById('verifyPasswordBtn');
+const loginPasswordInput = document.getElementById('loginPasswordInput');
 
 function applyTheme(themeName) {
     const t = themes[themeName];
@@ -604,30 +697,183 @@ secretInput.addEventListener('keypress', function(e) {
 });
 
 function checkAuth() {
-    const val = secretInput.value.trim().toLowerCase();
+    const val = secretInput.value.trim();
+    if (!val) return;
     
-    if (val === "17052010") {
-        currentUser = "Амир";
-        isAdmin = true;
-        document.getElementById('sidebarName').innerText = "Амир (Админ)";
-        clearChatBtn.style.display = "block";
-        startChat();
-    } else if (val === "12112005") {
-        currentUser = "Альберт";
-        isAdmin = false;
-        document.getElementById('sidebarName').innerText = "Альберт";
-        startChat();
+    db.ref("users/" + val).once("value").then(function(snap) {
+        if (snap.exists()) {
+            tempLoginCode = val;
+            expectedPassword = snap.val().password;
+            expectedName = snap.val().name;
+            isAdmin = !!snap.val().isAdmin;
+            authScreen.style.display = "none";
+            passwordScreen.style.display = "flex";
+        } else {
+            db.ref("invites/" + val).once("value").then(function(invSnap) {
+                if (invSnap.exists() || val === "RW2501") {
+                    tempInviteCode = val;
+                    authScreen.style.display = "none";
+                    nameScreen.style.display = "flex";
+                } else {
+                    errorMsg.style.display = "block";
+                    secretInput.value = "";
+                }
+            });
+        }
+    });
+}
+
+verifyPasswordBtn.addEventListener('click', () => {
+    const pass = loginPasswordInput.value;
+    if (pass === expectedPassword) {
+        loginUser(tempLoginCode, expectedName, isAdmin);
     } else {
-        errorMsg.style.display = "block";
-        secretInput.value = "";
+        passErrorMsg.style.display = "block";
+        loginPasswordInput.value = "";
+    }
+});
+
+loginPasswordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') verifyPasswordBtn.click();
+});
+
+document.getElementById('saveNameBtn').addEventListener('click', () => {
+    const nameVal = document.getElementById('nameInput').value.trim();
+    const passVal = document.getElementById('newPasswordInput').value.trim();
+    if (nameVal === "" || passVal === "") return;
+    
+    const isNewAdmin = (tempInviteCode === "RW2501");
+    
+    db.ref("users/" + tempInviteCode).set({
+        name: nameVal,
+        password: passVal,
+        code: tempInviteCode,
+        isAdmin: isNewAdmin
+    }).then(() => {
+        if (!isNewAdmin) {
+            db.ref("invites/" + tempInviteCode).remove();
+        }
+        loginUser(tempInviteCode, nameVal, isNewAdmin);
+    });
+});
+
+function loginUser(code, name, adminFlag) {
+    currentUserCode = code;
+    currentUserName = name;
+    isAdmin = adminFlag;
+    
+    db.ref("users/" + code).update({
+        name: name,
+        code: code
+    });
+    
+    document.getElementById('sidebarName').innerText = name;
+    document.getElementById('myCodeDisplay').innerText = "Ваш личный код для приглашения: " + code;
+    
+    authScreen.style.display = "none";
+    nameScreen.style.display = "none";
+    passwordScreen.style.display = "none";
+    appLayout.style.display = "flex";
+    
+    if (adminFlag) {
+        document.getElementById('adminInviteBtn').style.display = "inline-block";
+        document.getElementById('clearChatBtn').style.display = "inline-block";
+    }
+    
+    loadChats();
+}
+
+document.getElementById('adminInviteBtn').addEventListener('click', () => {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    db.ref("invites/" + code).set(true).then(() => {
+        alert("Новый код для входа сгенерирован: " + code);
+    });
+});
+
+document.getElementById('addChatBtn').addEventListener('click', () => {
+    const peerCode = prompt("Введите код пользователя для начала чата:");
+    if (!peerCode || peerCode === currentUserCode) return;
+    
+    db.ref("users/" + peerCode).once("value").then(snap => {
+        if (snap.exists()) {
+            const chatId = [currentUserCode, peerCode].sort().join('_');
+            db.ref("user_chats/" + currentUserCode + "/" + chatId).update({ peerCode: peerCode });
+            db.ref("user_chats/" + peerCode + "/" + chatId).update({ peerCode: currentUserCode });
+            openChat(chatId, snap.val().name, peerCode);
+        } else {
+            alert("Пользователь с таким кодом не найден.");
+        }
+    });
+});
+
+function loadChats() {
+    db.ref("user_chats/" + currentUserCode).on("value", function(snapshot) {
+        const chatList = document.getElementById('chatList');
+        chatList.innerHTML = "";
+        snapshot.forEach(function(childSnapshot) {
+            const chatId = childSnapshot.key;
+            const peerCode = childSnapshot.val().peerCode;
+            
+            db.ref("users/" + peerCode).once("value").then(function(userSnap) {
+                const peerName = userSnap.val() ? userSnap.val().name : "Неизвестный";
+                const div = document.createElement('div');
+                div.classList.add('chat-item');
+                div.innerHTML = `
+                    <div class="avatar">${peerName.charAt(0).toUpperCase()}</div>
+                    <div class="chat-info">
+                        <h4>${peerName}</h4>
+                        <p>Защищенный чат</p>
+                    </div>
+                `;
+                div.addEventListener('click', () => {
+                    openChat(chatId, peerName, peerCode);
+                });
+                chatList.appendChild(div);
+            });
+        });
+    });
+}
+
+function openChat(chatId, peerName, peerCode) {
+    currentChatId = chatId;
+    document.getElementById('noChatSelected').style.display = "none";
+    document.getElementById('chatContent').style.display = "flex";
+    document.getElementById('chatTitle').innerText = peerName;
+    messagesArea.innerHTML = "";
+    
+    if (window.messagesRef) {
+        window.messagesRef.off();
+    }
+    
+    window.messagesRef = db.ref("chats/" + chatId + "/messages");
+    
+    window.messagesRef.on("child_added", function(snapshot) {
+        renderMessage(snapshot.key, snapshot.val());
+        scrollToBottom();
+    });
+    window.messagesRef.on("child_changed", function(snapshot) {
+        updateMessageDOM(snapshot.key, snapshot.val());
+    });
+    window.messagesRef.on("child_removed", function(snapshot) {
+        removeMessageDOM(snapshot.key);
+    });
+    window.messagesRef.on("value", function(snapshot) {
+        if (!snapshot.exists()) {
+            messagesArea.innerHTML = "";
+        }
+    });
+    
+    if (window.innerWidth <= 768) {
+        sidebar.classList.add('hidden');
+        mainChat.classList.add('active');
     }
 }
 
-function startChat() {
-    authScreen.style.display = "none";
-    appLayout.style.display = "flex";
-    loadMessages();
-}
+backToChatsBtn.addEventListener('click', () => {
+    sidebar.classList.remove('hidden');
+    mainChat.classList.remove('active');
+    currentChatId = null;
+});
 
 sendBtn.addEventListener('click', handleSend);
 msgInput.addEventListener('keypress', function(e) {
@@ -635,68 +881,54 @@ msgInput.addEventListener('keypress', function(e) {
 });
 
 function handleSend() {
+    if (!currentChatId) return;
     const text = msgInput.value.trim();
     if (text === "") return;
+    
     if (editingMessageId) {
-        db.ref("chat/" + editingMessageId).update({
+        db.ref("chats/" + currentChatId + "/messages/" + editingMessageId).update({
             text: text,
             edited: true
         });
         cancelEdit();
     } else {
         const msgData = {
-            sender: currentUser,
+            senderCode: currentUserCode,
+            senderName: currentUserName,
             text: text,
             timestamp: Date.now(),
             edited: false
         };
-        db.ref("chat").push(msgData);
+        db.ref("chats/" + currentChatId + "/messages").push(msgData);
     }
     msgInput.value = "";
 }
 
 clearChatBtn.addEventListener('click', () => {
-    if (confirm("Вы уверены, что хотите удалить всю историю переписки? Это действие необратимо.")) {
-        db.ref("chat").remove();
+    if (!currentChatId) return;
+    if (confirm("Удалить историю этого чата? Действие необратимо.")) {
+        db.ref("chats/" + currentChatId + "/messages").remove();
     }
 });
 
-function loadMessages() {
-    db.ref("chat").on("child_added", function(snapshot) {
-        renderMessage(snapshot.key, snapshot.val());
-        scrollToBottom();
-    });
-    db.ref("chat").on("child_changed", function(snapshot) {
-        updateMessageDOM(snapshot.key, snapshot.val());
-    });
-    db.ref("chat").on("child_removed", function(snapshot) {
-        removeMessageDOM(snapshot.key);
-    });
-    db.ref("chat").on("value", function(snapshot) {
-        if (!snapshot.exists()) {
-            messagesArea.innerHTML = "";
-        }
-    });
-}
-
 function renderMessage(key, data) {
-    const isOut = data.sender === currentUser;
+    const isOut = data.senderCode === currentUserCode;
     const wrapper = document.createElement('div');
     wrapper.classList.add('message-wrapper');
     wrapper.classList.add(isOut ? 'out' : 'in');
     wrapper.id = "msg-" + key;
     wrapper.dataset.key = key;
-    wrapper.dataset.sender = data.sender;
+    wrapper.dataset.sender = data.senderCode;
     
     const time = new Date(data.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     let editedMark = data.edited ? "изм. " : "";
     
-    let senderName = "";
-    if (!isOut) senderName = `<div class="message-sender">${data.sender}</div>`;
+    let senderNameHTML = "";
+    if (!isOut) senderNameHTML = `<div class="message-sender">${data.senderName}</div>`;
     
     wrapper.innerHTML = `
         <div class="message-bubble">
-            ${senderName}
+            ${senderNameHTML}
             <div class="message-text">${data.text}</div>
             <div class="message-meta">${editedMark}${time}</div>
         </div>
@@ -734,14 +966,13 @@ function scrollToBottom() {
 
 function showContextMenu(e, key, element) {
     const sender = element.dataset.sender;
-    if (!isAdmin && sender !== currentUser) {
+    if (!isAdmin && sender !== currentUserCode) {
         contextMenu.style.display = "none";
         return;
     }
     
     selectedMessageId = key;
     selectedMessageElement = element;
-    
     contextMenu.style.display = "block";
     
     const menuWidth = contextMenu.offsetWidth;
@@ -779,9 +1010,9 @@ ctxEdit.addEventListener('click', function() {
 
 ctxDelete.addEventListener('click', function() {
     contextMenu.style.display = "none";
-    if (selectedMessageId) {
+    if (selectedMessageId && currentChatId) {
         if (confirm("Удалить сообщение?")) {
-            db.ref("chat/" + selectedMessageId).remove();
+            db.ref("chats/" + currentChatId + "/messages/" + selectedMessageId).remove();
             if (editingMessageId === selectedMessageId) cancelEdit();
         }
     }
